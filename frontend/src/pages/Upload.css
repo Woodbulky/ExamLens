@@ -1,0 +1,321 @@
+/* ========================================
+   Upload Page Styles
+   ======================================== */
+
+.upload-page {
+  max-width: 720px;
+  animation: fadeIn 0.4s ease;
+}
+
+.upload-header {
+  margin-bottom: var(--space-xl);
+}
+
+/* Sections */
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.upload-section {
+  padding: var(--space-lg);
+}
+
+.upload-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.upload-field {
+  margin-bottom: var(--space-md);
+}
+
+.upload-field:last-child {
+  margin-bottom: 0;
+}
+
+.upload-field-hint {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-left: 6px;
+}
+
+/* Drop Zone */
+.upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 40px 24px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--color-bg);
+}
+
+.upload-dropzone:hover {
+  border-color: var(--color-accent);
+  background: rgba(13, 148, 136, 0.02);
+}
+
+.upload-dropzone-active {
+  border-color: var(--color-accent) !important;
+  background: var(--color-accent-light) !important;
+}
+
+.upload-dropzone-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-xs);
+}
+
+.upload-dropzone-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.upload-dropzone-text strong {
+  color: var(--color-accent);
+}
+
+.upload-dropzone-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* File List */
+.upload-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.upload-file-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+.upload-file-item:hover {
+  border-color: var(--color-border-hover);
+}
+
+.upload-file-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FEF2F2;
+  color: #DC2626;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.upload-file-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.upload-file-name {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-file-size {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.upload-file-year {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.upload-year-input {
+  width: 80px !important;
+  padding: 6px 10px !important;
+  font-size: var(--font-size-sm) !important;
+  text-align: center;
+}
+
+.upload-file-remove {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.upload-file-remove:hover {
+  color: var(--color-error);
+  background: #FEF2F2;
+}
+
+.upload-add-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.upload-add-more:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(13, 148, 136, 0.02);
+}
+
+/* Submit */
+.upload-submit-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.upload-submit-btn {
+  width: 100%;
+}
+
+.upload-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Progress */
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.upload-progress-bar {
+  height: 6px;
+  background: var(--color-surface-dim);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-dark));
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+/* Success State */
+.upload-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-md);
+  padding: 64px var(--space-xl);
+  max-width: 480px;
+  margin: 80px auto 0;
+  animation: slideUp 0.5s ease;
+}
+
+.upload-success h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.upload-success p {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.upload-success-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+/* EFS Score in success */
+.upload-success-efs {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 12px 24px;
+  background: var(--color-accent-light);
+  border-radius: var(--radius-lg);
+}
+
+.upload-success-score {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--color-accent);
+  letter-spacing: -0.03em;
+}
+
+.upload-success-label {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Spinner */
+.upload-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .upload-file-item {
+    flex-wrap: wrap;
+  }
+
+  .upload-file-year {
+    margin-left: 52px;
+  }
+
+  .upload-success-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .upload-success-actions .btn {
+    width: 100%;
+  }
+}

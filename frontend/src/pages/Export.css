@@ -1,0 +1,187 @@
+/* ========================================
+   Export Page Styles
+   ======================================== */
+
+.export-page {
+  max-width: 960px;
+  animation: fadeIn 0.4s ease;
+}
+
+.export-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+/* Sections */
+.export-section {
+  margin-bottom: var(--space-xl);
+}
+
+.export-section h2 {
+  margin-bottom: var(--space-md);
+}
+
+/* Export Format Cards */
+.export-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.export-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 20px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  text-align: left;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.export-card:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.export-card:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+.export-card-done {
+  border-color: #059669;
+  background: #F0FDF4;
+}
+
+.export-card-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.export-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.export-card-text h3 {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.export-card-text p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.export-card-action {
+  flex-shrink: 0;
+}
+
+/* Share Section */
+.export-share-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.export-share-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.export-share-result {
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.export-share-url {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.export-share-url .input {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-family: 'SF Mono', monospace;
+}
+
+.export-share-buttons {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* Export History */
+.export-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.export-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.export-history-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.export-history-name {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.export-history-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .export-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .export-share-url {
+    flex-direction: column;
+  }
+
+  .export-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}
