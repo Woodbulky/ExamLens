@@ -1,0 +1,51 @@
+<svg width="900" height="300" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D9488"/>
+      <stop offset="100%" stop-color="#14B8A6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ===== ICON MARK ===== -->
+  <g transform="translate(40, 20)">
+
+    <!-- Lens circle -->
+    <circle cx="130" cy="130" r="105" stroke="url(#tealGrad)" stroke-width="18" fill="none"/>
+
+    <!-- Score bars inside -->
+    <rect x="75"  y="150" width="30" height="50" rx="8" fill="#14B8A6" opacity="0.6"/>
+    <rect x="115" y="120" width="30" height="80" rx="8" fill="#0D9488" opacity="0.8"/>
+    <rect x="155" y="85"  width="30" height="115" rx="8" fill="#0D9488"/>
+
+    <!-- Lens handle -->
+    <line x1="205" y1="205" x2="260" y2="265" stroke="url(#tealGrad)" stroke-width="22" stroke-linecap="round"/>
+
+  </g>
+
+  <!-- ===== WORDMARK ===== -->
+  <text
+    x="340"
+    y="185"
+    font-family="'Inter', 'Segoe UI', Arial, Helvetica, sans-serif"
+    font-size="110"
+    font-weight="700"
+    letter-spacing="-2"
+  >
+    <tspan fill="#1B2A4A">Exam</tspan><tspan fill="#0D9488">Lens</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text
+    x="345"
+    y="230"
+    font-family="'Inter', 'Segoe UI', Arial, Helvetica, sans-serif"
+    font-size="22"
+    font-weight="400"
+    fill="#94A3B8"
+    letter-spacing="4"
+  >
+    AI-POWERED EXAMINATION FAIRNESS ANALYSIS
+  </text>
+
+</svg>

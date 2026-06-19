@@ -175,6 +175,16 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* Theme toggle */
+.sidebar-theme-toggle {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.sidebar-theme-toggle:hover {
+  color: #FBBF24 !important;
+  background: rgba(251, 191, 36, 0.08) !important;
+}
+
 /* Mobile toggle */
 .sidebar-mobile-toggle {
   display: none;

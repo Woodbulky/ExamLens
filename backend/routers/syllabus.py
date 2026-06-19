@@ -2,12 +2,85 @@
 Syllabus Router — Manage syllabus chapters for subjects.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from pydantic import BaseModel
 from middleware.auth import get_current_user
 from db.supabase_client import get_supabase
 
 router = APIRouter(tags=["Syllabus"])
+
+
+# ============================================================
+# POST /syllabus/extract — Extract chapters from syllabus PDF
+# ============================================================
+@router.post("/syllabus/extract")
+async def extract_chapters_from_pdf(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """
+    Upload a syllabus PDF and extract chapter/unit names using AI.
+    Returns extracted chapters for user review — does NOT save to DB.
+    """
+    # Validate file type
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only PDF files are accepted.",
+        )
+
+    # Read file bytes
+    try:
+        pdf_bytes = await file.read()
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to read uploaded file.",
+        )
+
+    if len(pdf_bytes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty.",
+        )
+
+    if len(pdf_bytes) > 20 * 1024 * 1024:  # 20MB limit
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File too large. Maximum size is 20MB.",
+        )
+
+    # Extract text from PDF
+    try:
+        from services.pdf_parser import extract_text_from_pdf
+        raw_text = extract_text_from_pdf(pdf_bytes)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Could not read PDF: {str(e)}",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"PDF parsing failed: {str(e)}",
+        )
+
+    # Extract chapters using AI
+    try:
+        from services.groq_service import extract_syllabus_chapters
+        chapters = extract_syllabus_chapters(raw_text)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI extraction failed: {str(e)}",
+        )
+
+    return {"chapters": chapters}
 
 
 class CreateChapterRequest(BaseModel):

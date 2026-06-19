@@ -267,6 +267,55 @@
   font-weight: 500;
 }
 
+/* Practice Question Footer & Copy */
+.pq-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.pq-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-family);
+  flex-shrink: 0;
+}
+
+.pq-copy-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.pq-copy-btn.pq-copied {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: #DCFCE7;
+}
+
+/* Header Actions (Copy All + Generate) */
+.pq-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.pq-copy-all.pq-copied {
+  border-color: var(--color-success) !important;
+  color: var(--color-success) !important;
+  background: #DCFCE7 !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .prediction-card {
@@ -285,6 +334,11 @@
   }
 
   .predictions-practice-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pq-header-actions {
     flex-direction: column;
     align-items: stretch;
   }

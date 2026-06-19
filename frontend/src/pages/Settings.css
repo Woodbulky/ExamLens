@@ -69,3 +69,39 @@
 .settings-delete-btn:hover {
   background: #FEE2E2;
 }
+
+/* Role Toggle */
+.settings-role-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.settings-role-btn {
+  padding: 10px 20px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-family);
+}
+
+.settings-role-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.settings-role-btn.settings-role-active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}
+
+.settings-role-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

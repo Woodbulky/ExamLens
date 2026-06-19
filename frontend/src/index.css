@@ -85,6 +85,59 @@
 }
 
 /* ========================================
+   Dark Mode Overrides
+   ======================================== */
+[data-theme="dark"] {
+  /* Primary Colors */
+  --color-primary: #E2E8F0;
+  --color-primary-light: #CBD5E1;
+  --color-primary-dark: #F8FAFC;
+
+  /* Accent — teal works on dark */
+  --color-accent: #2DD4BF;
+  --color-accent-light: rgba(45, 212, 191, 0.12);
+  --color-accent-dark: #5EEAD4;
+
+  /* Surfaces */
+  --color-bg: #0B1120;
+  --color-surface: #111827;
+  --color-surface-dim: #1E293B;
+
+  /* Borders */
+  --color-border: #1E293B;
+  --color-border-hover: #334155;
+
+  /* Text */
+  --color-text: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-text-inverse: #0F172A;
+
+  /* Semantic */
+  --color-success: #34D399;
+  --color-warning: #FBBF24;
+  --color-error: #F87171;
+  --color-info: #60A5FA;
+
+  /* EFS Score Colors */
+  --color-efs-excellent: #34D399;
+  --color-efs-good: #2DD4BF;
+  --color-efs-moderate: #FBBF24;
+  --color-efs-poor: #FB923C;
+  --color-efs-critical: #F87171;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Smooth theme transition */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ========================================
    Reset & Base
    ======================================== */
 
@@ -336,6 +389,57 @@ textarea.input {
   border: 1px solid rgba(13, 148, 136, 0.2);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
+}
+
+/* ========================================
+   Dark Mode — Component Overrides
+   ======================================== */
+[data-theme="dark"] .badge-excellent { background: rgba(52, 211, 153, 0.15); color: #6EE7B7; }
+[data-theme="dark"] .badge-good { background: rgba(45, 212, 191, 0.12); color: #5EEAD4; }
+[data-theme="dark"] .badge-moderate { background: rgba(251, 191, 36, 0.12); color: #FDE68A; }
+[data-theme="dark"] .badge-poor { background: rgba(251, 146, 60, 0.12); color: #FDBA74; }
+[data-theme="dark"] .badge-critical { background: rgba(248, 113, 113, 0.12); color: #FCA5A5; }
+
+[data-theme="dark"] .auth-error {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.2);
+  color: #FCA5A5;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .card-elevated {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .input,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--color-surface-dim);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .settings-saved {
+  background: rgba(52, 211, 153, 0.1);
+  color: #6EE7B7;
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+[data-theme="dark"] .settings-delete-btn {
+  background: rgba(248, 113, 113, 0.1);
+  color: #FCA5A5;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+[data-theme="dark"] .settings-delete-btn:hover {
+  background: rgba(248, 113, 113, 0.15);
+}
+
+[data-theme="dark"] .pq-copy-btn.pq-copied,
+[data-theme="dark"] .pq-copy-all.pq-copied {
+  background: rgba(52, 211, 153, 0.12) !important;
 }
 
 /* ========================================

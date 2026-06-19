@@ -12,6 +12,7 @@ import {
   BookOpen,
   Target,
 } from 'lucide-react'
+import ExamLensLogo from '../components/ExamLensLogo'
 import './Landing.css'
 
 const features = [
@@ -85,7 +86,7 @@ export default function Landing() {
         <div className="landing-nav-inner container">
           <div className="landing-logo">
             <div className="landing-logo-icon">
-              <BarChart3 size={20} strokeWidth={1.5} color="#0D9488" />
+              <ExamLensLogo size={24} />
             </div>
             <span className="landing-logo-text">ExamLens</span>
           </div>
@@ -281,7 +282,7 @@ export default function Landing() {
           <div className="landing-footer-brand">
             <div className="landing-logo">
               <div className="landing-logo-icon">
-                <BarChart3 size={16} strokeWidth={1.5} color="#0D9488" />
+                <ExamLensLogo size={20} />
               </div>
               <span className="landing-logo-text" style={{ fontSize: '16px' }}>ExamLens</span>
             </div>

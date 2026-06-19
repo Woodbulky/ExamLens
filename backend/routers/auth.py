@@ -33,6 +33,7 @@ async def verify_token(user: dict = Depends(get_current_user)):
                 "user_id": user["id"],
                 "email": user["email"],
                 "display_name": profile.get("display_name", ""),
+                "role": profile.get("role", "student"),
                 "created_at": profile.get("created_at", ""),
             }
         else:
@@ -44,12 +45,14 @@ async def verify_token(user: dict = Depends(get_current_user)):
             supabase.table("profiles").insert({
                 "id": user["id"],
                 "display_name": display_name,
+                "role": "student",
             }).execute()
 
             return {
                 "user_id": user["id"],
                 "email": user["email"],
                 "display_name": display_name,
+                "role": "student",
                 "created_at": None,
             }
 

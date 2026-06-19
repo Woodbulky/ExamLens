@@ -59,6 +59,8 @@ from routers.syllabus import router as syllabus_router
 from routers.analysis import router as analysis_router
 from routers.dashboard import router as dashboard_router
 from routers.export import router as export_router
+from routers.chat import router as chat_router
+from routers.professor import router as professor_router
 
 app.include_router(auth_router)
 app.include_router(subjects_router)
@@ -67,6 +69,8 @@ app.include_router(syllabus_router)
 app.include_router(analysis_router)
 app.include_router(dashboard_router)
 app.include_router(export_router)
+app.include_router(chat_router)
+app.include_router(professor_router)
 
 
 @app.get("/")

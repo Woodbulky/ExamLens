@@ -12,6 +12,11 @@ Components:
   RP (Recurrence Penalty) — Penalizes exams where the same few chapters
       dominate year after year.
 
+Mark-Weighted EFS (MW-EFS):
+  Same formula but uses sum-of-marks instead of question-count per chapter.
+  A 15-mark question contributes more bias than a 2-mark question.
+  Only computed when marks data is available.
+
 Labels:
   8.5–10.0  →  Excellent
   7.0–8.4   →  Good
@@ -33,13 +38,16 @@ def calculate_efs(
     Calculate the full EFS Score from classified questions.
 
     Args:
-        classifications: List of {"assigned_chapter": str, "question_number": int, ...}
-                         from the AI classification step
+        classifications: List of {"assigned_chapter": str, "question_number": int,
+                          "difficulty": str, "confidence": str, "blooms_level": str,
+                          "marks": int|None, ...} from the AI classification step
         chapters: Full list of syllabus chapter names
         years: List of years in the analysis
 
     Returns:
-        Dict with efs_score, tbi_score, scs_score, rp_score, efs_label, chapter_stats, etc.
+        Dict with efs_score, tbi_score, scs_score, rp_score, efs_label,
+        efs_score_weighted, chapter_stats, blooms_distribution,
+        confidence_distribution, etc.
     """
     total_chapters = len(chapters)
     total_questions = len(classifications)
@@ -136,6 +144,18 @@ def calculate_efs(
     # Assign label based on score range
     efs_label = _get_label(efs_score)
 
+    # =========================================================
+    # Mark-Weighted EFS (MW-EFS)
+    #
+    # Same formula but uses sum_of_marks per chapter instead of
+    # question count. A 15-mark question contributes more bias
+    # than a 2-mark question.
+    # Only computed when at least some questions have marks data.
+    # =========================================================
+    efs_score_weighted = _calculate_mark_weighted_efs(
+        classifications, chapters, total_questions
+    )
+
     # --- Build chapter stats ---
     chapter_stats = []
     for i, ch in enumerate(chapters):
@@ -170,19 +190,138 @@ def calculate_efs(
     # Difficulty distribution
     difficulty_dist = Counter(c.get("difficulty", "Medium") for c in classifications)
 
+    # =========================================================
+    # Bloom's Taxonomy Distribution
+    # Count questions per cognitive level for the radar chart.
+    # =========================================================
+    blooms_dist = _calculate_blooms_distribution(classifications)
+
+    # =========================================================
+    # Confidence Distribution
+    # Count questions per AI confidence level (High/Medium/Low).
+    # Helps users assess reliability of the analysis.
+    # =========================================================
+    confidence_dist = _calculate_confidence_distribution(classifications)
+
     return {
         "efs_score": efs_score,
         "tbi_score": round(tbi_score, 2),
         "scs_score": round(scs_score, 2),
         "rp_score": round(rp_score, 2),
         "efs_label": efs_label,
+        "efs_score_weighted": efs_score_weighted,
         "chapter_stats": chapter_stats,
         "never_tested": never_tested,
         "total_questions": total_questions,
         "chapters_appeared": chapters_appeared,
         "total_chapters": total_chapters,
         "difficulty_distribution": dict(difficulty_dist),
+        "blooms_distribution": blooms_dist,
+        "confidence_distribution": confidence_dist,
     }
+
+
+def _calculate_mark_weighted_efs(
+    classifications: list[dict],
+    chapters: list[str],
+    total_questions: int,
+) -> float | None:
+    """
+    Calculate mark-weighted EFS score.
+
+    Uses sum-of-marks per chapter instead of question count for the
+    TBI calculation. SCS and RP are also recalculated using marks.
+
+    Returns None if fewer than 30% of questions have marks data
+    (not enough data for a meaningful weighted score).
+    """
+    # Collect marks data
+    marks_data = [(c["assigned_chapter"], c.get("marks")) for c in classifications]
+    questions_with_marks = [(ch, m) for ch, m in marks_data if m is not None and m > 0]
+
+    # Need at least 30% of questions to have marks for a meaningful score
+    if len(questions_with_marks) < max(3, total_questions * 0.3):
+        return None
+
+    total_chapters = len(chapters)
+    if total_chapters == 0:
+        return None
+
+    # Sum marks per chapter
+    chapter_marks = Counter()
+    for ch, m in questions_with_marks:
+        chapter_marks[ch] += m
+
+    for ch in chapters:
+        if ch not in chapter_marks:
+            chapter_marks[ch] = 0
+
+    total_marks = sum(chapter_marks.values())
+    if total_marks == 0:
+        return None
+
+    expected_marks = total_marks / total_chapters
+
+    # MW-TBI: using marks instead of question counts
+    bias_values = []
+    for ch in chapters:
+        actual_marks = chapter_marks.get(ch, 0)
+        bias = (actual_marks - expected_marks) / expected_marks if expected_marks > 0 else 0
+        bias_values.append(bias)
+
+    mean_bias = sum(bias_values) / len(bias_values) if bias_values else 0
+    variance = sum((b - mean_bias) ** 2 for b in bias_values) / len(bias_values) if bias_values else 0
+    std_dev = math.sqrt(variance)
+    mw_tbi = 10 - min(std_dev * 2, 10)
+    mw_tbi = max(0, min(10, mw_tbi))
+
+    # MW-SCS: chapters with at least some marks
+    chapters_with_marks = sum(1 for ch in chapters if chapter_marks.get(ch, 0) > 0)
+    mw_scs = (chapters_with_marks / total_chapters) * 10
+    mw_scs = max(0, min(10, mw_scs))
+
+    # MW-RP: using marks concentration instead of question count
+    sorted_marks = sorted(chapter_marks.values(), reverse=True)
+    top_3_marks = sorted_marks[:3] if len(sorted_marks) >= 3 else sorted_marks
+
+    if total_marks > 0 and top_3_marks:
+        avg_recurrence = sum(m / total_marks for m in top_3_marks) / len(top_3_marks)
+    else:
+        avg_recurrence = 0
+
+    mw_rp = 10 - (avg_recurrence * 10)
+    mw_rp = max(0, min(10, mw_rp))
+
+    # Final MW-EFS
+    mw_efs = (mw_tbi * 0.40) + (mw_scs * 0.35) + (mw_rp * 0.25)
+    return round(mw_efs, 2)
+
+
+def _calculate_blooms_distribution(classifications: list[dict]) -> dict:
+    """
+    Count questions per Bloom's Taxonomy level.
+
+    Returns a dict with all 6 levels (including zeros):
+    {"Remember": 3, "Understand": 8, "Apply": 12, "Analyze": 5, "Evaluate": 2, "Create": 0}
+    """
+    BLOOMS_LEVELS = ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"]
+    counts = Counter(c.get("blooms_level", "Understand") for c in classifications)
+
+    # Ensure all 6 levels are present (even with 0)
+    return {level: counts.get(level, 0) for level in BLOOMS_LEVELS}
+
+
+def _calculate_confidence_distribution(classifications: list[dict]) -> dict:
+    """
+    Count questions per AI confidence level.
+
+    Returns a dict with all 3 levels:
+    {"High": 20, "Medium": 8, "Low": 2}
+    """
+    CONFIDENCE_LEVELS = ["High", "Medium", "Low"]
+    counts = Counter(c.get("confidence", "Medium") for c in classifications)
+
+    return {level: counts.get(level, 0) for level in CONFIDENCE_LEVELS}
 
 
 def _get_label(score: float) -> str:
@@ -207,10 +346,16 @@ def _empty_result() -> dict:
         "scs_score": 0,
         "rp_score": 0,
         "efs_label": "Critical",
+        "efs_score_weighted": None,
         "chapter_stats": [],
         "never_tested": [],
         "total_questions": 0,
         "chapters_appeared": 0,
         "total_chapters": 0,
         "difficulty_distribution": {},
+        "blooms_distribution": {
+            "Remember": 0, "Understand": 0, "Apply": 0,
+            "Analyze": 0, "Evaluate": 0, "Create": 0,
+        },
+        "confidence_distribution": {"High": 0, "Medium": 0, "Low": 0},
     }

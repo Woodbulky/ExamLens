@@ -13,6 +13,9 @@ import {
   Zap,
   HelpCircle,
   XCircle,
+  Copy,
+  CheckCircle2,
+  CalendarDays,
 } from 'lucide-react'
 import './Predictions.css'
 
@@ -32,6 +35,7 @@ export default function Predictions() {
   const [practiceQuestions, setPracticeQuestions] = useState(null)
   const [generatingPQ, setGeneratingPQ] = useState(false)
   const [showPQ, setShowPQ] = useState(false)
+  const [copiedIndex, setCopiedIndex] = useState(null) // null | number | 'all'
 
   useEffect(() => {
     fetchPredictions()
@@ -58,6 +62,36 @@ export default function Predictions() {
       setError(err.response?.data?.detail || 'Failed to generate practice questions.')
     } finally {
       setGeneratingPQ(false)
+    }
+  }
+
+  function formatQuestion(pq, index) {
+    return (
+      `Q${index + 1}. ${pq.question}\n` +
+      `   Chapter: ${pq.chapter || 'N/A'} | Difficulty: ${pq.difficulty || 'Medium'} | ` +
+      `Marks: ${pq.marks || '?'} | Type: ${pq.type || 'Theory'}`
+    )
+  }
+
+  async function copyQuestion(pq, index) {
+    try {
+      await navigator.clipboard.writeText(formatQuestion(pq, index))
+      setCopiedIndex(index)
+      setTimeout(() => setCopiedIndex(null), 1500)
+    } catch {
+      console.warn('Clipboard write failed')
+    }
+  }
+
+  async function copyAllQuestions() {
+    if (!practiceQuestions || practiceQuestions.length === 0) return
+    try {
+      const text = practiceQuestions.map((pq, i) => formatQuestion(pq, i)).join('\n\n')
+      await navigator.clipboard.writeText(text)
+      setCopiedIndex('all')
+      setTimeout(() => setCopiedIndex(null), 1500)
+    } catch {
+      console.warn('Clipboard write failed')
     }
   }
 
@@ -113,6 +147,26 @@ export default function Predictions() {
           Predictions are based on historical patterns and are not guarantees.
           Use as a study guide alongside full syllabus preparation.
         </span>
+      </div>
+
+      {/* Study Plan CTA */}
+      <div className="predictions-studyplan-cta ai-highlight" style={{ marginBottom: 'var(--space-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <CalendarDays size={20} strokeWidth={1.5} color="var(--color-accent)" />
+          <div>
+            <strong style={{ fontSize: '14px' }}>AI Study Planner</strong>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 0 }}>
+              Turn these predictions into a day-by-day study schedule
+            </p>
+          </div>
+        </div>
+        <button
+          className="btn btn-sm btn-accent"
+          onClick={() => navigate(`/study-plan/${analysisId}`)}
+        >
+          <CalendarDays size={14} strokeWidth={1.5} />
+          Create Study Plan
+        </button>
       </div>
 
       {/* Prediction Cards */}
@@ -206,23 +260,37 @@ export default function Predictions() {
       <div className="predictions-section">
         <div className="predictions-practice-header">
           <h2 className="text-section-heading">Practice Questions</h2>
-          <button
-            className="btn btn-accent"
-            onClick={handleGeneratePractice}
-            disabled={generatingPQ}
-          >
-            {generatingPQ ? (
-              <>
-                <Loader size={16} className="upload-spinner" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles size={16} strokeWidth={1.5} />
-                {practiceQuestions ? 'Regenerate' : 'Generate Practice Questions'}
-              </>
+          <div className="pq-header-actions">
+            {showPQ && practiceQuestions && practiceQuestions.length > 0 && (
+              <button
+                className={`btn btn-sm btn-secondary pq-copy-all ${copiedIndex === 'all' ? 'pq-copied' : ''}`}
+                onClick={copyAllQuestions}
+              >
+                {copiedIndex === 'all' ? (
+                  <><CheckCircle2 size={14} strokeWidth={1.5} /> Copied!</>
+                ) : (
+                  <><Copy size={14} strokeWidth={1.5} /> Copy All</>
+                )}
+              </button>
             )}
-          </button>
+            <button
+              className="btn btn-accent"
+              onClick={handleGeneratePractice}
+              disabled={generatingPQ}
+            >
+              {generatingPQ ? (
+                <>
+                  <Loader size={16} className="upload-spinner" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} strokeWidth={1.5} />
+                  {practiceQuestions ? 'Regenerate' : 'Generate Practice Questions'}
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {error && practiceQuestions === null && (
@@ -250,7 +318,20 @@ export default function Predictions() {
                   </div>
                 </div>
                 <p className="pq-text">{pq.question}</p>
-                <p className="pq-chapter">{pq.chapter}</p>
+                <div className="pq-footer">
+                  <p className="pq-chapter">{pq.chapter}</p>
+                  <button
+                    className={`pq-copy-btn ${copiedIndex === i ? 'pq-copied' : ''}`}
+                    onClick={() => copyQuestion(pq, i)}
+                    title="Copy question"
+                  >
+                    {copiedIndex === i ? (
+                      <><CheckCircle2 size={13} strokeWidth={1.5} /> Copied</>
+                    ) : (
+                      <><Copy size={13} strokeWidth={1.5} /> Copy</>
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -1,10 +1,11 @@
 """
-Export Router — PDF, CSV, JSON export + shareable links + research ZIP.
+Export Router — PDF, CSV, JSON export + shareable links + research ZIP + study plan PDF.
 
 Endpoints:
-  POST /export         — Generate export file (PDF/CSV/JSON/research_zip)
-  POST /export/share   — Generate shareable public link
-  GET  /export/history — Get user's export history
+  POST /export              — Generate export file (PDF/CSV/JSON/research_zip)
+  POST /export/study-plan   — Export study plan as PDF
+  POST /export/share        — Generate shareable public link
+  GET  /export/history      — Get user's export history
 """
 
 import io
@@ -411,6 +412,217 @@ async def export_analysis(
     return StreamingResponse(
         io.BytesIO(content),
         media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ============================================================
+# Study Plan PDF Export
+# ============================================================
+class ExportStudyPlanRequest(BaseModel):
+    analysis_id: str
+    subject_name: str
+    exam_date: str
+    days_until: int
+    hours_per_day: float
+    plan: dict  # The full AI-generated plan object
+
+
+def _generate_study_plan_pdf(data: dict) -> bytes:
+    """Generate a professional PDF for the AI Study Plan."""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import mm
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    )
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=25*mm, bottomMargin=20*mm)
+    styles = getSampleStyleSheet()
+
+    # Custom styles
+    title_style = ParagraphStyle('CustomTitle', parent=styles['Title'],
+                                  fontSize=22, spaceAfter=6, textColor=colors.HexColor('#0F2744'))
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
+                                     fontSize=11, textColor=colors.HexColor('#6B7280'))
+    heading_style = ParagraphStyle('SectionHead', parent=styles['Heading2'],
+                                    fontSize=14, spaceAbove=18, spaceBefore=12,
+                                    textColor=colors.HexColor('#0D9488'))
+    body_style = ParagraphStyle('Body', parent=styles['Normal'],
+                                 fontSize=10, leading=14, spaceAfter=6)
+    tip_style = ParagraphStyle('Tip', parent=styles['Normal'],
+                                fontSize=9, leading=13, textColor=colors.HexColor('#4B5563'),
+                                leftIndent=12, spaceAfter=4)
+
+    elements = []
+    plan = data.get("plan", {})
+
+    # Header
+    elements.append(Paragraph("ExamLens — AI Study Plan", title_style))
+    elements.append(Paragraph(f"Subject: {data.get('subject_name', 'N/A')}", subtitle_style))
+    elements.append(Paragraph(
+        f"Exam Date: {data.get('exam_date', 'N/A')} · "
+        f"{data.get('days_until', 0)} days to go · "
+        f"{data.get('hours_per_day', 0)} hrs/day · "
+        f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+        subtitle_style))
+    elements.append(Spacer(1, 8))
+    elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#E5E7EB')))
+    elements.append(Spacer(1, 8))
+
+    # Overview Stats Table
+    elements.append(Paragraph("Overview", heading_style))
+    total_days = plan.get("total_days", data.get("days_until", 0))
+    total_hours = plan.get("total_hours", round(data.get("days_until", 0) * data.get("hours_per_day", 0)))
+    overview_data = [
+        ["Total Study Days", "Total Hours", "Hours / Day", "Days to Exam"],
+        [str(total_days), str(total_hours), str(data.get("hours_per_day", 0)), str(data.get("days_until", 0))],
+    ]
+    ot = Table(overview_data, colWidths=[110, 110, 110, 110])
+    ot.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#F0FDFA')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#0D9488')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E5E7EB')),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 14),
+    ]))
+    elements.append(ot)
+    elements.append(Spacer(1, 10))
+
+    # Phases
+    phases = plan.get("phases", [])
+    for pi, phase in enumerate(phases):
+        phase_name = phase.get("phase_name", f"Phase {pi + 1}")
+        elements.append(Paragraph(phase_name, heading_style))
+
+        days = phase.get("days", [])
+        if days:
+            day_header = ["Day", "Date", "Focus Topic", "Hours", "Priority", "Tasks"]
+            day_rows = [day_header]
+            for day in days:
+                tasks_str = ", ".join(day.get("tasks", [])) if day.get("tasks") else "-"
+                # Truncate long tasks for table readability
+                if len(tasks_str) > 60:
+                    tasks_str = tasks_str[:57] + "..."
+
+                day_date = day.get("date", "-")
+                if day_date and day_date != "-":
+                    try:
+                        from datetime import datetime as dt_parse
+                        parsed = dt_parse.strptime(day_date, "%Y-%m-%d")
+                        day_date = parsed.strftime("%b %d, %a")
+                    except Exception:
+                        pass
+
+                day_rows.append([
+                    str(day.get("day", pi * 100 + 1)),
+                    day_date,
+                    str(day.get("focus", "-"))[:35],
+                    str(day.get("hours", "-")),
+                    str(day.get("priority", "Medium")),
+                    tasks_str,
+                ])
+
+            dt = Table(day_rows, colWidths=[30, 68, 120, 35, 50, 140])
+
+            # Color-code priority column
+            priority_colors = {
+                "High": colors.HexColor('#DCFCE7'),
+                "Medium": colors.HexColor('#FEF3C7'),
+                "Low": colors.HexColor('#F3F4F6'),
+            }
+            style_commands = [
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#F0FDFA')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#0D9488')),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E5E7EB')),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ]
+            # Add priority row colors
+            for ri, row in enumerate(day_rows[1:], start=1):
+                priority = row[4]
+                bg = priority_colors.get(priority, colors.HexColor('#FFFFFF'))
+                style_commands.append(('BACKGROUND', (4, ri), (4, ri), bg))
+
+            dt.setStyle(TableStyle(style_commands))
+            elements.append(dt)
+            elements.append(Spacer(1, 6))
+
+    # Tips
+    tips = plan.get("tips", [])
+    if tips:
+        elements.append(Paragraph("Study Tips", heading_style))
+        for i, tip in enumerate(tips, 1):
+            elements.append(Paragraph(f"• {tip}", tip_style))
+        elements.append(Spacer(1, 8))
+
+    # Footer
+    elements.append(Spacer(1, 16))
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#E5E7EB')))
+    elements.append(Paragraph(
+        "Generated by ExamLens — AI-Powered Examination Fairness Analysis",
+        ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#9CA3AF'))
+    ))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+@router.post("/export/study-plan")
+async def export_study_plan(
+    body: ExportStudyPlanRequest,
+    user: dict = Depends(get_current_user),
+):
+    """Export the AI-generated study plan as a PDF."""
+    supabase = get_supabase()
+
+    # Verify ownership of the analysis
+    analysis = (
+        supabase.table("analyses")
+        .select("id")
+        .eq("id", body.analysis_id)
+        .eq("user_id", user["id"])
+        .execute()
+    )
+    if not analysis.data:
+        raise HTTPException(status_code=404, detail="Analysis not found.")
+
+    # Generate PDF
+    pdf_bytes = _generate_study_plan_pdf({
+        "subject_name": body.subject_name,
+        "exam_date": body.exam_date,
+        "days_until": body.days_until,
+        "hours_per_day": body.hours_per_day,
+        "plan": body.plan,
+    })
+
+    filename = f"ExamLens_{body.subject_name.replace(' ', '_')}_StudyPlan.pdf"
+
+    # Save to export history
+    try:
+        supabase.table("export_history").insert({
+            "user_id": user["id"],
+            "analysis_id": body.analysis_id,
+            "export_type": "STUDY_PLAN_PDF",
+            "subject_name": body.subject_name,
+        }).execute()
+    except Exception:
+        pass  # Non-critical
+
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 

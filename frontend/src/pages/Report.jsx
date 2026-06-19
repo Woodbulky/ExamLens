@@ -12,8 +12,12 @@ import {
   Sparkles,
   Target,
   Download,
+  Brain,
+  ShieldCheck,
+  Copy,
 } from 'lucide-react'
 import './Report.css'
+import { ChapterBarChart, DifficultyDonut, BloomsRadarChart, ConfidenceBadge } from '../components/ReportCharts'
 
 function getEfsColor(score) {
   if (score >= 8.5) return '#059669'
@@ -31,6 +35,15 @@ function getStatusClass(status) {
     'Fair': 'status-fair',
   }
   return map[status] || ''
+}
+
+const BLOOMS_BADGE_COLORS = {
+  Remember: { bg: '#DBEAFE', color: '#2563EB' },
+  Understand: { bg: '#D1FAE5', color: '#059669' },
+  Apply: { bg: '#EDE9FE', color: '#7C3AED' },
+  Analyze: { bg: '#FEF3C7', color: '#D97706' },
+  Evaluate: { bg: '#FFEDD5', color: '#EA580C' },
+  Create: { bg: '#FCE7F3', color: '#DB2777' },
 }
 
 export default function Report() {
@@ -84,7 +97,9 @@ export default function Report() {
   if (!report) return null
 
   const efs = report.efs_score || {}
-  const maxQuestions = Math.max(...(report.chapter_stats || []).map(c => c.questions_asked), 1)
+  const hasWeightedEfs = efs.total_weighted != null
+  const similarity = report.similarity_data || null
+  const hasSimilarPairs = similarity && similarity.similar_pairs && similarity.similar_pairs.length > 0
 
   return (
     <div className="report-page">
@@ -117,7 +132,7 @@ export default function Report() {
         </button>
       </div>
 
-      {/* EFS Score Card */}
+      {/* EFS Score Card + Confidence Badge */}
       <div className="report-efs-card card-elevated">
         <div className="report-efs-main">
           <div className="report-efs-score-wrap">
@@ -135,6 +150,18 @@ export default function Report() {
           >
             {efs.label || 'N/A'}
           </span>
+          {/* Mark-Weighted EFS */}
+          {hasWeightedEfs && (
+            <div className="report-efs-weighted">
+              <span className="report-efs-weighted-label">By Marks</span>
+              <span
+                className="report-efs-weighted-score"
+                style={{ color: getEfsColor(efs.total_weighted) }}
+              >
+                {efs.total_weighted.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="report-efs-breakdown">
@@ -157,6 +184,10 @@ export default function Report() {
               <span className="report-efs-component-value">{(efs[comp.key] || 0).toFixed(2)}</span>
             </div>
           ))}
+          {/* Confidence Badge inline */}
+          {report.confidence_distribution && (
+            <ConfidenceBadge distribution={report.confidence_distribution} />
+          )}
         </div>
       </div>
 
@@ -171,49 +202,13 @@ export default function Report() {
         </div>
       )}
 
-      {/* Chapter Breakdown */}
+      {/* Chapter Breakdown — Interactive Bar Chart */}
       <div className="report-section card">
         <div className="report-section-header">
           <BarChart3 size={20} strokeWidth={1.5} color="var(--color-accent)" />
           <h2 className="text-section-heading">Chapter Breakdown</h2>
         </div>
-        <div className="report-chapters">
-          {(report.chapter_stats || []).map((ch, i) => (
-            <div key={i} className="report-chapter-row">
-              <div className="report-chapter-info">
-                <span className="report-chapter-name">{ch.chapter_name}</span>
-                <span className={`report-chapter-status ${getStatusClass(ch.status || 'Fair')}`}>
-                  {ch.status || 'Fair'}
-                </span>
-              </div>
-              <div className="report-chapter-bar-area">
-                <div className="report-chapter-bar-track">
-                  <div
-                    className="report-chapter-bar-fill"
-                    style={{
-                      width: `${(ch.questions_asked / maxQuestions) * 100}%`,
-                      background: ch.questions_asked === 0 ? 'var(--color-error)' :
-                        ch.bias_score > 1.5 ? 'var(--color-warning)' :
-                        ch.bias_score < 0.5 && ch.questions_asked > 0 ? '#F59E0B' :
-                        'var(--color-accent)',
-                    }}
-                  />
-                  {/* Expected line */}
-                  <div
-                    className="report-chapter-expected-line"
-                    style={{ left: `${(ch.expected_questions / maxQuestions) * 100}%` }}
-                    title={`Expected: ${ch.expected_questions}`}
-                  />
-                </div>
-                <span className="report-chapter-count">{ch.questions_asked}</span>
-              </div>
-            </div>
-          ))}
-          <div className="report-chapter-legend">
-            <span><span className="report-legend-bar" style={{ background: 'var(--color-accent)' }} /> Actual</span>
-            <span><span className="report-legend-line" /> Expected</span>
-          </div>
-        </div>
+        <ChapterBarChart chapterStats={report.chapter_stats || []} />
       </div>
 
       {/* Never Tested */}
@@ -231,34 +226,77 @@ export default function Report() {
         </div>
       )}
 
-      {/* Difficulty Distribution */}
+      {/* Repeated / Similar Questions */}
+      {hasSimilarPairs && (
+        <div className="report-section card">
+          <div className="report-section-header">
+            <Copy size={20} strokeWidth={1.5} color="var(--color-warning)" />
+            <h2 className="text-section-heading">
+              Repeated Questions
+              <span className="report-sim-count">
+                {similarity.total_pairs_found} pair{similarity.total_pairs_found !== 1 ? 's' : ''} found
+              </span>
+            </h2>
+            <span className="report-sim-rate-badge">
+              QRR: {similarity.repetition_rate}%
+            </span>
+          </div>
+          <p className="report-sim-description">
+            Questions with high text similarity across different exam years, detected using TF-IDF analysis.
+            A high Question Repetition Rate (QRR) indicates professors may be reusing questions.
+          </p>
+          <div className="report-sim-pairs">
+            {similarity.similar_pairs.map((pair, i) => (
+              <div key={i} className="report-sim-card">
+                <div className="report-sim-score">
+                  <span className="report-sim-pct">{pair.similarity}%</span>
+                  <span className="report-sim-label">match</span>
+                </div>
+                <div className="report-sim-questions">
+                  <div className="report-sim-q">
+                    <span className="report-sim-year-badge">{pair.q1_year}</span>
+                    <span className="report-sim-q-num">Q{pair.q1_number}</span>
+                    <span className="report-sim-q-text">
+                      {pair.q1_text?.substring(0, 150)}{pair.q1_text?.length > 150 ? '…' : ''}
+                    </span>
+                  </div>
+                  <div className="report-sim-divider" />
+                  <div className="report-sim-q">
+                    <span className="report-sim-year-badge">{pair.q2_year}</span>
+                    <span className="report-sim-q-num">Q{pair.q2_number}</span>
+                    <span className="report-sim-q-text">
+                      {pair.q2_text?.substring(0, 150)}{pair.q2_text?.length > 150 ? '…' : ''}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Difficulty Distribution — Donut Chart */}
       {report.difficulty_distribution && (
         <div className="report-section card">
           <div className="report-section-header">
             <TrendingUp size={20} strokeWidth={1.5} color="var(--color-accent)" />
             <h2 className="text-section-heading">Difficulty Distribution</h2>
           </div>
-          <div className="report-difficulty">
-            {['Easy', 'Medium', 'Hard'].map((level) => {
-              const count = report.difficulty_distribution[level] || 0
-              const total = Object.values(report.difficulty_distribution).reduce((a, b) => a + b, 0)
-              const pct = total > 0 ? Math.round((count / total) * 100) : 0
-              return (
-                <div key={level} className="report-diff-item">
-                  <div className="report-diff-header">
-                    <span className="report-diff-label">{level}</span>
-                    <span className="report-diff-value">{count} ({pct}%)</span>
-                  </div>
-                  <div className="report-diff-bar-track">
-                    <div
-                      className={`report-diff-bar-fill report-diff-${level.toLowerCase()}`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
+          <DifficultyDonut distribution={report.difficulty_distribution} />
+        </div>
+      )}
+
+      {/* Bloom's Taxonomy Analysis */}
+      {report.blooms_distribution && Object.values(report.blooms_distribution).some(v => v > 0) && (
+        <div className="report-section card">
+          <div className="report-section-header">
+            <Brain size={20} strokeWidth={1.5} color="var(--color-accent)" />
+            <h2 className="text-section-heading">Bloom's Taxonomy Analysis</h2>
           </div>
+          <p className="report-blooms-subtitle">
+            Cognitive level distribution across all exam questions — from basic recall to creative problem solving.
+          </p>
+          <BloomsRadarChart distribution={report.blooms_distribution} />
         </div>
       )}
 
@@ -278,31 +316,55 @@ export default function Report() {
                 <th>Question</th>
                 <th>Chapter</th>
                 <th>Difficulty</th>
+                <th>Bloom's</th>
+                <th>Marks</th>
                 <th>Confidence</th>
                 <th>Year</th>
               </tr>
             </thead>
             <tbody>
-              {(report.questions || []).map((q, i) => (
-                <tr key={i}>
-                  <td>{q.question_number}</td>
-                  <td className="report-q-text" title={q.question_text}>
-                    {q.question_text?.substring(0, 120)}{q.question_text?.length > 120 ? '...' : ''}
-                  </td>
-                  <td><span className="report-q-chapter">{q.assigned_chapter}</span></td>
-                  <td>
-                    <span className={`badge badge-${(q.difficulty || 'medium').toLowerCase()}`}>
-                      {q.difficulty}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`badge badge-conf-${(q.confidence || 'medium').toLowerCase()}`}>
-                      {q.confidence}
-                    </span>
-                  </td>
-                  <td>{q.year || '—'}</td>
-                </tr>
-              ))}
+              {(report.questions || []).map((q, i) => {
+                const bloomsStyle = BLOOMS_BADGE_COLORS[q.blooms_level] || BLOOMS_BADGE_COLORS.Understand
+                return (
+                  <tr key={i}>
+                    <td>{q.question_number}</td>
+                    <td className="report-q-text" title={q.question_text}>
+                      {q.question_text?.substring(0, 120)}{q.question_text?.length > 120 ? '...' : ''}
+                    </td>
+                    <td><span className="report-q-chapter">{q.assigned_chapter}</span></td>
+                    <td>
+                      <span className={`badge badge-${(q.difficulty || 'medium').toLowerCase()}`}>
+                        {q.difficulty}
+                      </span>
+                    </td>
+                    <td>
+                      {q.blooms_level ? (
+                        <span
+                          className="badge"
+                          style={{ background: bloomsStyle.bg, color: bloomsStyle.color }}
+                        >
+                          {q.blooms_level}
+                        </span>
+                      ) : (
+                        <span className="text-metadata">—</span>
+                      )}
+                    </td>
+                    <td>
+                      {q.marks ? (
+                        <span className="report-q-marks">{q.marks}M</span>
+                      ) : (
+                        <span className="text-metadata">—</span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={`badge badge-conf-${(q.confidence || 'medium').toLowerCase()}`}>
+                        {q.confidence}
+                      </span>
+                    </td>
+                    <td>{q.year || '—'}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

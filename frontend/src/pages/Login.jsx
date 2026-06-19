@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { BarChart3, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react'
+import ExamLensLogo from '../components/ExamLensLogo'
+import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react'
 import './Auth.css'
 
 export default function Login() {
@@ -45,7 +46,7 @@ export default function Login() {
           {/* Logo */}
           <div className="auth-logo" onClick={() => navigate('/')}>
             <div className="landing-logo-icon">
-              <BarChart3 size={20} strokeWidth={1.5} color="#0D9488" />
+              <ExamLensLogo size={24} />
             </div>
             <span className="landing-logo-text">ExamLens</span>
           </div>

@@ -12,6 +12,11 @@ import {
   BookOpen,
   ArrowRight,
   Loader,
+  Sparkles,
+  Pencil,
+  Check,
+  FileUp,
+  Type,
 } from 'lucide-react'
 import './Upload.css'
 
@@ -20,6 +25,7 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 export default function Upload() {
   const navigate = useNavigate()
   const fileInputRef = useRef(null)
+  const syllabusInputRef = useRef(null)
 
   // Form state
   const [subjectName, setSubjectName] = useState('')
@@ -27,12 +33,126 @@ export default function Upload() {
   const [files, setFiles] = useState([]) // { file, year }
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
 
+  // Syllabus auto-detect state
+  const [syllabusMode, setSyllabusMode] = useState('manual') // 'manual' | 'pdf'
+  const [syllabusFile, setSyllabusFile] = useState(null)
+  const [extractedChapters, setExtractedChapters] = useState([]) // array of strings
+  const [extracting, setExtracting] = useState(false)
+  const [extractError, setExtractError] = useState('')
+  const [editingChapterIndex, setEditingChapterIndex] = useState(null)
+  const [editingChapterValue, setEditingChapterValue] = useState('')
+  const [addingChapter, setAddingChapter] = useState(false)
+  const [newChapterName, setNewChapterName] = useState('')
+  const [syllabusDragging, setSyllabusDragging] = useState(false)
+
   // UI state
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [success, setSuccess] = useState(null)
+
+  // ============================================================
+  // Syllabus Auto-Detect Handlers
+  // ============================================================
+  function handleSyllabusFileSelect(file) {
+    setExtractError('')
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      setExtractError('Only PDF files are accepted.')
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setExtractError('File too large. Max 20MB.')
+      return
+    }
+    setSyllabusFile(file)
+    setExtractedChapters([])
+  }
+
+  async function handleExtractChapters() {
+    if (!syllabusFile) return
+    setExtracting(true)
+    setExtractError('')
+    try {
+      const formData = new FormData()
+      formData.append('file', syllabusFile)
+      const response = await api.post('/syllabus/extract', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      const extracted = response.data.chapters || []
+      setExtractedChapters(extracted)
+      // Also populate the textarea so submit flow works
+      setChapters(extracted.join('\n'))
+    } catch (err) {
+      setExtractError(err.response?.data?.detail || 'Failed to extract chapters.')
+    } finally {
+      setExtracting(false)
+    }
+  }
+
+  function handleDeleteChapter(index) {
+    const updated = extractedChapters.filter((_, i) => i !== index)
+    setExtractedChapters(updated)
+    setChapters(updated.join('\n'))
+  }
+
+  function startEditChapter(index) {
+    setEditingChapterIndex(index)
+    setEditingChapterValue(extractedChapters[index])
+  }
+
+  function saveEditChapter() {
+    if (editingChapterValue.trim() && editingChapterIndex !== null) {
+      const updated = [...extractedChapters]
+      updated[editingChapterIndex] = editingChapterValue.trim()
+      setExtractedChapters(updated)
+      setChapters(updated.join('\n'))
+    }
+    setEditingChapterIndex(null)
+    setEditingChapterValue('')
+  }
+
+  function handleAddChapter() {
+    if (newChapterName.trim()) {
+      const updated = [...extractedChapters, newChapterName.trim()]
+      setExtractedChapters(updated)
+      setChapters(updated.join('\n'))
+      setNewChapterName('')
+      setAddingChapter(false)
+    }
+  }
+
+  function handleSyllabusDropOver(e) {
+    e.preventDefault()
+    setSyllabusDragging(true)
+  }
+
+  function handleSyllabusDropLeave(e) {
+    e.preventDefault()
+    setSyllabusDragging(false)
+  }
+
+  function handleSyllabusDrop(e) {
+    e.preventDefault()
+    setSyllabusDragging(false)
+    const droppedFiles = Array.from(e.dataTransfer.files)
+    if (droppedFiles.length > 0) {
+      handleSyllabusFileSelect(droppedFiles[0])
+    }
+  }
+
+  // When switching modes, sync extracted chapters to textarea
+  function handleModeSwitch(mode) {
+    setSyllabusMode(mode)
+    setExtractError('')
+    if (mode === 'manual' && extractedChapters.length > 0) {
+      setChapters(extractedChapters.join('\n'))
+    }
+  }
+
+  // ============================================================
+  // Exam Papers Handlers (existing)
+  // ============================================================
 
   // Validate a file before adding
   function validateFile(file) {
@@ -236,6 +356,8 @@ export default function Upload() {
                 setFiles([])
                 setSubjectName('')
                 setChapters('')
+                setExtractedChapters([])
+                setSyllabusFile(null)
                 setUploadProgress(0)
               }}
             >
@@ -283,20 +405,241 @@ export default function Upload() {
             />
           </div>
 
+          {/* Syllabus Mode Toggle */}
           <div className="upload-field">
-            <label className="input-label" htmlFor="syllabus-chapters">
+            <label className="input-label">
               Syllabus Chapters
-              <span className="upload-field-hint">(one per line)</span>
             </label>
-            <textarea
-              id="syllabus-chapters"
-              className="input"
-              placeholder={"Arrays and Linked Lists\nStacks and Queues\nTrees and Binary Trees\nSorting Algorithms\nGraph Algorithms"}
-              value={chapters}
-              onChange={(e) => setChapters(e.target.value)}
-              rows={6}
-            />
+            <div className="syllabus-mode-toggle">
+              <button
+                type="button"
+                className={`syllabus-mode-btn ${syllabusMode === 'manual' ? 'active' : ''}`}
+                onClick={() => handleModeSwitch('manual')}
+              >
+                <Type size={14} strokeWidth={1.5} />
+                Enter Manually
+              </button>
+              <button
+                type="button"
+                className={`syllabus-mode-btn ${syllabusMode === 'pdf' ? 'active' : ''}`}
+                onClick={() => handleModeSwitch('pdf')}
+              >
+                <Sparkles size={14} strokeWidth={1.5} />
+                Upload Syllabus PDF
+              </button>
+            </div>
           </div>
+
+          {/* Manual Mode — Textarea */}
+          {syllabusMode === 'manual' && (
+            <div className="upload-field">
+              <span className="upload-field-hint">One chapter per line</span>
+              <textarea
+                id="syllabus-chapters"
+                className="input"
+                placeholder={"Arrays and Linked Lists\nStacks and Queues\nTrees and Binary Trees\nSorting Algorithms\nGraph Algorithms"}
+                value={chapters}
+                onChange={(e) => setChapters(e.target.value)}
+                rows={6}
+              />
+            </div>
+          )}
+
+          {/* PDF Mode — Syllabus Upload + Extracted Chapters */}
+          {syllabusMode === 'pdf' && (
+            <div className="syllabus-pdf-section">
+              {/* Syllabus file picker */}
+              {!syllabusFile ? (
+                <div
+                  className={`syllabus-dropzone ${syllabusDragging ? 'syllabus-dropzone-active' : ''}`}
+                  onDragOver={handleSyllabusDropOver}
+                  onDragLeave={handleSyllabusDropLeave}
+                  onDrop={handleSyllabusDrop}
+                  onClick={() => syllabusInputRef.current?.click()}
+                >
+                  <input
+                    ref={syllabusInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      if (e.target.files[0]) handleSyllabusFileSelect(e.target.files[0])
+                      e.target.value = ''
+                    }}
+                    style={{ display: 'none' }}
+                  />
+                  <FileUp size={22} strokeWidth={1.5} color="var(--color-accent)" />
+                  <p className="syllabus-dropzone-text">
+                    <strong>Upload syllabus PDF</strong> or drag and drop
+                  </p>
+                  <p className="syllabus-dropzone-hint">AI will extract chapter names automatically</p>
+                </div>
+              ) : (
+                <div className="syllabus-file-row">
+                  <div className="syllabus-file-info">
+                    <FileText size={16} strokeWidth={1.5} color="var(--color-accent)" />
+                    <span className="syllabus-file-name">{syllabusFile.name}</span>
+                    <span className="syllabus-file-size">
+                      ({(syllabusFile.size / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
+                  </div>
+                  <div className="syllabus-file-actions">
+                    {extractedChapters.length === 0 && (
+                      <button
+                        type="button"
+                        className="btn btn-accent btn-sm"
+                        onClick={handleExtractChapters}
+                        disabled={extracting}
+                      >
+                        {extracting ? (
+                          <>
+                            <Loader size={14} className="upload-spinner" />
+                            Extracting...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={14} strokeWidth={1.5} />
+                            Extract Chapters
+                          </>
+                        )}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="syllabus-file-remove"
+                      onClick={() => {
+                        setSyllabusFile(null)
+                        setExtractedChapters([])
+                        setChapters('')
+                      }}
+                      title="Remove syllabus"
+                    >
+                      <X size={16} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Extract error */}
+              {extractError && (
+                <div className="auth-error" style={{ marginTop: 12 }}>
+                  <AlertCircle size={14} strokeWidth={1.5} />
+                  <span>{extractError}</span>
+                </div>
+              )}
+
+              {/* Extracting spinner */}
+              {extracting && (
+                <div className="syllabus-extracting">
+                  <Loader size={18} className="upload-spinner" color="var(--color-accent)" />
+                  <span>Analyzing syllabus with AI...</span>
+                </div>
+              )}
+
+              {/* Extracted chapters as editable chips */}
+              {extractedChapters.length > 0 && (
+                <div className="syllabus-chapters-result">
+                  <div className="syllabus-chapters-header">
+                    <CheckCircle2 size={16} strokeWidth={1.5} color="var(--color-accent)" />
+                    <span>{extractedChapters.length} chapters extracted</span>
+                    <span className="syllabus-chapters-hint">Click to edit, or add/remove as needed</span>
+                  </div>
+                  <div className="syllabus-chips-list">
+                    {extractedChapters.map((ch, i) => (
+                      <div key={i} className="syllabus-chip">
+                        {editingChapterIndex === i ? (
+                          <div className="syllabus-chip-edit">
+                            <input
+                              type="text"
+                              className="input syllabus-chip-input"
+                              value={editingChapterValue}
+                              onChange={(e) => setEditingChapterValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') { e.preventDefault(); saveEditChapter() }
+                                if (e.key === 'Escape') setEditingChapterIndex(null)
+                              }}
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              className="syllabus-chip-action save"
+                              onClick={saveEditChapter}
+                              title="Save"
+                            >
+                              <Check size={14} strokeWidth={2} />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="syllabus-chip-number">{i + 1}</span>
+                            <span className="syllabus-chip-name">{ch}</span>
+                            <button
+                              type="button"
+                              className="syllabus-chip-action edit"
+                              onClick={() => startEditChapter(i)}
+                              title="Edit"
+                            >
+                              <Pencil size={12} strokeWidth={1.5} />
+                            </button>
+                            <button
+                              type="button"
+                              className="syllabus-chip-action delete"
+                              onClick={() => handleDeleteChapter(i)}
+                              title="Remove"
+                            >
+                              <X size={14} strokeWidth={1.5} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Add chapter row */}
+                    {addingChapter ? (
+                      <div className="syllabus-chip syllabus-chip-adding">
+                        <input
+                          type="text"
+                          className="input syllabus-chip-input"
+                          placeholder="Chapter name..."
+                          value={newChapterName}
+                          onChange={(e) => setNewChapterName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') { e.preventDefault(); handleAddChapter() }
+                            if (e.key === 'Escape') { setAddingChapter(false); setNewChapterName('') }
+                          }}
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          className="syllabus-chip-action save"
+                          onClick={handleAddChapter}
+                          title="Add"
+                        >
+                          <Check size={14} strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          className="syllabus-chip-action delete"
+                          onClick={() => { setAddingChapter(false); setNewChapterName('') }}
+                          title="Cancel"
+                        >
+                          <X size={14} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="syllabus-add-btn"
+                        onClick={() => setAddingChapter(true)}
+                      >
+                        <Plus size={14} strokeWidth={1.5} />
+                        Add Chapter
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* File Upload */}

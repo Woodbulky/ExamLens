@@ -108,6 +108,8 @@ export function AuthProvider({ children }) {
     user,
     profile,
     loading,
+    role: profile?.role || 'student',
+    isProf: profile?.role === 'professor',
     signUp,
     signIn,
     signInWithGoogle,

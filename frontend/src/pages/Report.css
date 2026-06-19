@@ -436,4 +436,285 @@
   .report-efs-component-header {
     width: 120px;
   }
+
+  .blooms-chart-container {
+    flex-direction: column;
+  }
+
+  .report-sim-card {
+    flex-direction: column;
+  }
+
+  .report-sim-score {
+    flex-direction: row;
+    min-width: auto;
+    padding: 8px 12px;
+  }
+}
+
+/* ========================================
+   Mark-Weighted EFS
+   ======================================== */
+.report-efs-weighted {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 12px;
+  background: var(--color-surface-dim);
+  border-radius: var(--radius-full);
+}
+
+.report-efs-weighted-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.report-efs-weighted-score {
+  font-size: var(--font-size-base);
+  font-weight: 800;
+}
+
+/* ========================================
+   Bloom's Taxonomy Section
+   ======================================== */
+.report-blooms-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-md);
+  line-height: 1.5;
+}
+
+.blooms-chart-container {
+  display: flex;
+  gap: var(--space-xl);
+  align-items: center;
+}
+
+.blooms-radar-wrap {
+  flex: 1;
+  min-width: 280px;
+}
+
+.blooms-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 180px;
+}
+
+.blooms-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+}
+
+.blooms-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.blooms-legend-label {
+  flex: 1;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.blooms-legend-count {
+  font-weight: 700;
+  color: var(--color-text);
+  min-width: 24px;
+  text-align: right;
+}
+
+.blooms-legend-pct {
+  font-weight: 500;
+  color: var(--color-text-muted);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ========================================
+   Confidence Badge
+   ======================================== */
+.confidence-badge-container {
+  margin-top: 4px;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.confidence-badge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.confidence-badge-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.confidence-badge-quality {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.confidence-badge-bar-track {
+  display: flex;
+  height: 6px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--color-surface-dim);
+}
+
+.confidence-badge-bar-segment {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.confidence-badge-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* ========================================
+   Similarity / Repeated Questions
+   ======================================== */
+.report-sim-count {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-left: 8px;
+}
+
+.report-sim-rate-badge {
+  margin-left: auto;
+  padding: 3px 10px;
+  background: #FEF3C7;
+  color: #D97706;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.02em;
+}
+
+.report-sim-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-lg);
+  line-height: 1.6;
+}
+
+.report-sim-pairs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.report-sim-card {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.report-sim-card:hover {
+  border-color: var(--color-border-hover);
+}
+
+.report-sim-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 16px;
+  background: linear-gradient(135deg, #FEF3C7, #FFEDD5);
+  gap: 2px;
+}
+
+.report-sim-pct {
+  font-size: 20px;
+  font-weight: 800;
+  color: #D97706;
+  letter-spacing: -0.02em;
+}
+
+.report-sim-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #B45309;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.report-sim-questions {
+  flex: 1;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.report-sim-q {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.report-sim-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0;
+}
+
+.report-sim-year-badge {
+  padding: 2px 8px;
+  background: var(--color-surface-dim);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.report-sim-q-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+  flex-shrink: 0;
+  min-width: 24px;
+}
+
+.report-sim-q-text {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* ========================================
+   Marks Column in Questions Table
+   ======================================== */
+.report-q-marks {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-surface-dim);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
 }

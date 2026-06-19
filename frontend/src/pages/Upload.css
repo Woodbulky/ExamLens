@@ -300,6 +300,327 @@
   animation: spin 1s linear infinite;
 }
 
+/* ========================================
+   Syllabus Auto-Detect Styles
+   ======================================== */
+
+/* Mode Toggle */
+.syllabus-mode-toggle {
+  display: flex;
+  gap: 0;
+  background: var(--color-surface-dim);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  margin-top: 6px;
+}
+
+.syllabus-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.syllabus-mode-btn:hover {
+  color: var(--color-text-secondary);
+}
+
+.syllabus-mode-btn.active {
+  background: var(--color-card);
+  color: var(--color-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Syllabus PDF Section */
+.syllabus-pdf-section {
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Syllabus Dropzone */
+.syllabus-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px 16px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--color-bg);
+}
+
+.syllabus-dropzone:hover {
+  border-color: var(--color-accent);
+  background: rgba(13, 148, 136, 0.02);
+}
+
+.syllabus-dropzone-active {
+  border-color: var(--color-accent) !important;
+  background: var(--color-accent-light) !important;
+}
+
+.syllabus-dropzone-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.syllabus-dropzone-text strong {
+  color: var(--color-accent);
+}
+
+.syllabus-dropzone-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Syllabus File Row */
+.syllabus-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.syllabus-file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.syllabus-file-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.syllabus-file-size {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.syllabus-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.syllabus-file-remove {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.syllabus-file-remove:hover {
+  color: var(--color-error);
+  background: #FEF2F2;
+}
+
+/* Extracting State */
+.syllabus-extracting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--color-accent-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  font-weight: 500;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Extracted Chapters Result */
+.syllabus-chapters-result {
+  animation: slideUp 0.4s ease;
+}
+
+.syllabus-chapters-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.syllabus-chapters-hint {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-left: auto;
+}
+
+/* Chapter Chips List */
+.syllabus-chips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.syllabus-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.syllabus-chip:hover {
+  border-color: var(--color-border-hover);
+}
+
+.syllabus-chip-number {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.syllabus-chip-name {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.syllabus-chip-action {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.syllabus-chip-action.edit {
+  color: var(--color-text-muted);
+  opacity: 0;
+}
+
+.syllabus-chip:hover .syllabus-chip-action.edit {
+  opacity: 1;
+}
+
+.syllabus-chip-action.edit:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.syllabus-chip-action.delete {
+  color: var(--color-text-muted);
+  opacity: 0;
+}
+
+.syllabus-chip:hover .syllabus-chip-action.delete {
+  opacity: 1;
+}
+
+.syllabus-chip-action.delete:hover {
+  color: var(--color-error);
+  background: #FEF2F2;
+}
+
+.syllabus-chip-action.save {
+  color: var(--color-accent);
+}
+
+.syllabus-chip-action.save:hover {
+  background: var(--color-accent-light);
+}
+
+/* Chip Edit Mode */
+.syllabus-chip-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.syllabus-chip-input {
+  padding: 4px 8px !important;
+  font-size: var(--font-size-sm) !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* Add Chapter Button */
+.syllabus-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.syllabus-add-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(13, 148, 136, 0.02);
+}
+
+.syllabus-chip-adding {
+  border-style: dashed;
+  border-color: var(--color-accent);
+  background: rgba(13, 148, 136, 0.02);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .upload-file-item {
@@ -317,5 +638,29 @@
 
   .upload-success-actions .btn {
     width: 100%;
+  }
+
+  .syllabus-mode-toggle {
+    flex-direction: column;
+  }
+
+  .syllabus-file-row {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .syllabus-file-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .syllabus-chapters-hint {
+    display: none;
+  }
+
+  .syllabus-chip-action.edit,
+  .syllabus-chip-action.delete {
+    opacity: 1;
   }
 }
