@@ -36,16 +36,25 @@ app = FastAPI(
 )
 
 # Configure CORS
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+# Build allowed origins list
+allowed_origins = [
+    frontend_url,
+    "http://localhost:5173",             # Local dev
+    "http://localhost:5174",             # Local dev (alt port)
+    "http://localhost:5175",             # Local dev (alt port)
+    "https://examlens.vercel.app",       # Production
+    "https://examlens-ruby.vercel.app",  # Production (actual)
+]
+
+# Log for debugging CORS issues in production
+print(f"[CORS] FRONTEND_URL = {frontend_url}")
+print(f"[CORS] Allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        frontend_url,
-        "http://localhost:5173",       # Local dev
-        "http://localhost:5174",       # Local dev (alt port)
-        "http://localhost:5175",       # Local dev (alt port)
-        "https://examlens.vercel.app", # Production
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
